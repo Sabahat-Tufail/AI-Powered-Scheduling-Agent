@@ -1,0 +1,382 @@
+{
+  "name": "Calender_Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi there! \nI am  your assistant. How can I assist you today?",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8c67bcbf-9ce8-4fef-8d4f-631e27de5f2d",
+      "name": "When chat message received",
+      "webhookId": "f60281be-80c7-4c22-b5c8-4233063bf159"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=You are a calendar assistant capable of the following tasks:\n\n1. Create_Event\n2. Find_Email (search for email in database)\n3. Get_Calendar_Availability\n4. Get_Event (fetch specific event details)\n5. Delete_Event (remove events)\n6. Update_Event (change or update events)\n\nInstructions:\n\n- Create_Event:\n  Always call Find_Email first to retrieve the email address. If no email is found, ask the user for one.\n\n- Get_Calendar_Availability:\n  Always specify whether you want 'booked_slots' or 'available_slots'.\n\n- Get_Event:\n  Must return data in this JSON format:\n  {\n    \"Event_Title\": \"...\",\n    \"Attendees\": [\"...\"],\n    \"Meeting_Link\": \"...\"\n  }\n\n- Delete_Event:\n  Always call Get_Event first to get the event ID before deleting.\n\n- Update_Event:\n  Always call Get_Event first to get the event ID before updating.\n\nCurrent Date: {{ $now }}\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        0
+      ],
+      "id": "a475837c-6fdd-4a23-b857-db6c24ec7f59",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3-32b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        224,
+        224
+      ],
+      "id": "6dfa866f-c1e7-42a3-99e3-7692782dc481",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "AJNy6lt9IVVXBQhq",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        352,
+        224
+      ],
+      "id": "4b4393e5-2e52-4201-9e6e-fa113fe61c8b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Call this tool to find a contact,s email address.\nYou will be given the{{ $fromAI('name') }} and your job is to return the email address.",
+        "documentId": {
+          "__rl": true,
+          "value": "1E9i1RQI3lKf1oc3gXL-OjOT_9BVOIixlqmjuZ0Ce2IE",
+          "mode": "list",
+          "cachedResultName": "Contact",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E9i1RQI3lKf1oc3gXL-OjOT_9BVOIixlqmjuZ0Ce2IE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1E9i1RQI3lKf1oc3gXL-OjOT_9BVOIixlqmjuZ0Ce2IE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        480,
+        224
+      ],
+      "id": "cfaa5dfc-a5d6-449c-bf06-26e6a0fe6be8",
+      "name": "Find-Email",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "kxcRYdB5a8TD4Pxc",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Call this tool to create an event in your calendar.\n\nThe parameters you need are following. If any of these parameters are missing, go back and ask the user for the missing data:\n\n1. Title of the meeting  \n2. Date of the meeting  \n3. Time of the meeting  \n4. Attendees  \n\nIf there is no end time, assume start + 30 minutes.  \n\nAlways include the meeting link in the final message.\n",
+        "calendar": {
+          "__rl": true,
+          "value": "sabahatxwati@gmail.com",
+          "mode": "list",
+          "cachedResultName": "sabahatxwati@gmail.com"
+        },
+        "start": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start', ``, 'string') }}",
+        "end": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End', ``, 'string') }}",
+        "additionalFields": {
+          "attendees": [
+            "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', ``, 'string') }}"
+          ],
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        224
+      ],
+      "id": "3391f6c8-eee7-453f-bdbb-a04f99b4b479",
+      "name": "Create_event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "BiCVoye0ffuaTeo7",
+          "name": "Google Calendar account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Call this tool to check calendar availability.\n\nInstructions:\n- Always specify clearly in the output whether the result shows \"booked slots\" or \"available slots\".\n- If there are no booked events, explicitly state that the user is fully available in the requested time window.\n- If there are events, list them as \"booked slots\" with their start and end times.\n- After listing booked slots, also mention the remaining \"available slots\".\n",
+        "resource": "calendar",
+        "calendar": {
+          "__rl": true,
+          "value": "sabahatxwati@gmail.com",
+          "mode": "list",
+          "cachedResultName": "sabahatxwati@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Start_Time', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('End_Time', ``, 'string') }}",
+        "options": {
+          "outputFormat": "availability",
+          "timezone": {
+            "mode": "list",
+            "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Timezone', ``, 'string') }}"
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        736,
+        224
+      ],
+      "id": "3b2ae337-9a16-43c0-a3ae-57f364f80ac9",
+      "name": "Get_Calender",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "BiCVoye0ffuaTeo7",
+          "name": "Google Calendar account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Get many events in Google CalendWhen fetching an event, always filter by both the attendee’s email (from Find_Email) and the exact date/time window, to avoid returning unrelated events.\n",
+        "operation": "getAll",
+        "calendar": {
+          "__rl": true,
+          "value": "sabahatxwati@gmail.com",
+          "mode": "list",
+          "cachedResultName": "sabahatxwati@gmail.com"
+        },
+        "timeMin": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('After', ``, 'string') }}",
+        "timeMax": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Before', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        864,
+        224
+      ],
+      "id": "fd7bf311-0437-41da-9a8a-8f5dd026efb7",
+      "name": "Get_Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "BiCVoye0ffuaTeo7",
+          "name": "Google Calendar account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Call this tool to delete an event.\nAlways ,use the Get_Event tool first to get the Event_ID",
+        "operation": "delete",
+        "calendar": {
+          "__rl": true,
+          "value": "sabahatxwati@gmail.com",
+          "mode": "list",
+          "cachedResultName": "sabahatxwati@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        992,
+        224
+      ],
+      "id": "9cc86ee2-ec5d-4233-bc4e-9953dc7285a4",
+      "name": "Delete_Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "BiCVoye0ffuaTeo7",
+          "name": "Google Calendar account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "=Call this tool to update an event.\n\n#Instructions#\n1. Call the get_event tool first to get the event ID\n2. Then call the Find_Email tool to find the respective email address from the database. If the email address is not in the data base, then go back and ask for the email address\n\nIf Additional Attendees or New Title is not mentioned, go back and ask the user for that data.\n",
+        "operation": "update",
+        "calendar": {
+          "__rl": true,
+          "value": "sabahatxwati@gmail.com",
+          "mode": "list",
+          "cachedResultName": "sabahatxwati@gmail.com"
+        },
+        "eventId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Event_ID', ``, 'string') }}",
+        "updateFields": {
+          "attendeesUi": {
+            "values": {
+              "attendees": [
+                "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('attendees0_Attendees', ``, 'string') }}"
+              ]
+            }
+          },
+          "summary": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Summary', ``, 'string') }}"
+        }
+      },
+      "type": "n8n-nodes-base.googleCalendarTool",
+      "typeVersion": 1.3,
+      "position": [
+        1120,
+        224
+      ],
+      "id": "f04ab07d-dcf8-4668-b9f8-569da152a444",
+      "name": "Update_Event",
+      "credentials": {
+        "googleCalendarOAuth2Api": {
+          "id": "BiCVoye0ffuaTeo7",
+          "name": "Google Calendar account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find-Email": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create_event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_Calender": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get_Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete_Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update_Event": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7389f129-3e6b-410c-87d8-cc858230941b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "0bb9f7c0e1818fb2e563aff2759a42429ab87f78852434cde9cc9dd51d2870bb"
+  },
+  "id": "duY5QGrc0V0omYQ8",
+  "tags": []
+}
